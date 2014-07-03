@@ -51,14 +51,14 @@ class JettyHandler extends SessionHandler {
 		try {
 			long start, cost;
 
-			start = System.currentTimeMillis();
+			start = System.nanoTime();
 			filter.doFilter(request, response, null);
 			baseRequest.setHandled(true);
-			cost = System.currentTimeMillis() - start;
+			cost = System.nanoTime() - start;
 
 			LOG.info(String.format(LOG_FMT, response.getStatus(),
 					request.getMethod().toUpperCase(), getRequestLine(request),
-					request.getRemoteHost(), cost / 1000.0));
+					request.getRemoteHost(), cost / 1000000.0));
 		} catch (NotConsumedException ignore) {
 			// TODO : Not use an exception in order to be faster.
 			baseRequest.setHandled(false);
