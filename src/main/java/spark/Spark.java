@@ -48,7 +48,7 @@ public final class Spark extends SparkBase {
      * @param path  the path
      * @param route The route
      */
-    public static synchronized void get(final String path, final Route route) {
+    public static synchronized void get(String path, Route route) {
         addRoute(HttpMethod.get.name(), wrap(path, route));
     }
 

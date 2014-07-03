@@ -35,28 +35,42 @@ import org.eclipse.jetty.util.log.Logger;
  */
 class JettyHandler extends SessionHandler {
 
-    private static final Logger LOG = Log.getLogger(JettyHandler.class);
+	private static final Logger LOG = Log.getLogger(JettyHandler.class);
 
-    private Filter filter;
+	private static final String LOG_FMT = "%d %s %s (%s) %.2fms";
 
-    public JettyHandler(Filter filter) {
-        this.filter = filter;
-    }
+	private Filter filter;
 
-    @Override
-    public void doHandle(
-            String target,
-            Request baseRequest,
-            HttpServletRequest request,
-            HttpServletResponse response) throws IOException, ServletException {
-        LOG.debug("jettyhandler, handle();");
-        try {
-            filter.doFilter(request, response, null);
-            baseRequest.setHandled(true);
-        } catch (NotConsumedException ignore) {
-            // TODO : Not use an exception in order to be faster.
-            baseRequest.setHandled(false);
-        }
-    }
+	public JettyHandler(Filter filter) {
+		this.filter = filter;
+	}
+
+	@Override
+	public void doHandle(String target, Request baseRequest, HttpServletRequest request,
+			HttpServletResponse response) throws IOException, ServletException {
+		try {
+			long start, cost;
+
+			start = System.currentTimeMillis();
+			filter.doFilter(request, response, null);
+			baseRequest.setHandled(true);
+			cost = System.currentTimeMillis() - start;
+
+			LOG.info(String.format(LOG_FMT, response.getStatus(),
+					request.getMethod().toUpperCase(), getRequestLine(request),
+					request.getRemoteHost(), cost / 1000.0));
+		} catch (NotConsumedException ignore) {
+			// TODO : Not use an exception in order to be faster.
+			baseRequest.setHandled(false);
+		}
+	}
+
+	private String getRequestLine(HttpServletRequest request) {
+		String query = request.getQueryString();
+		if (query == null || query.isEmpty()) {
+			return request.getRequestURI();
+		}
+		return String.format("%s?%s", request.getRequestURI(), query);
+	}
 
 }
