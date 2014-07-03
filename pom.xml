@@ -18,9 +18,9 @@
     </license>
   </licenses>
   <scm>
-    <connection>scm:git:git@github.com:perwendel/spark.git</connection>
-    <developerConnection>scm:git:git@github.com:perwendel/spark.git</developerConnection>
-    <url>scm:git:git@github.com:perwendel/spark.git</url>
+    <connection>scm:git:git@github.com:nicky-zs/spark.git</connection>
+    <developerConnection>scm:git:git@github.com:nicky-zs/spark.git</developerConnection>
+    <url>scm:git:git@github.com:nicky-zs/spark.git</url>
   </scm>
   <developers>
   </developers>
