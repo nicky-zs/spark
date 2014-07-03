@@ -16,17 +16,18 @@
  */
 package spark.examples.filter;
 
+import static spark.Spark.after;
+import static spark.Spark.before;
+import static spark.Spark.get;
+import static spark.Spark.halt;
+
 import java.util.HashMap;
 import java.util.Map;
 
 import spark.Filter;
 import spark.Request;
 import spark.Response;
-
-import static spark.Spark.after;
-import static spark.Spark.before;
-import static spark.Spark.get;
-import static spark.Spark.halt;
+import spark.Route;
 
 /**
  * Example showing a very simple (and stupid) autentication filter that is
@@ -44,37 +45,46 @@ import static spark.Spark.halt;
  */
 public class FilterExample {
 
-    private static Map<String, String> usernamePasswords = new HashMap<String, String>();
+	private static Map<String, String> usernamePasswords = new HashMap<String, String>();
 
-    public static void main(String[] args) {
+	public static void main(String[] args) {
 
-        usernamePasswords.put("foo", "bar");
-        usernamePasswords.put("admin", "admin");
+		usernamePasswords.put("foo", "bar");
+		usernamePasswords.put("admin", "admin");
 
-        before(new Filter() {
-            @Override
-            public void handle(Request request, Response response) {
-                String user = request.queryParams("user");
-                String password = request.queryParams("password");
+		before(new Filter() {
+			@Override
+			public void handle(Request request, Response response) {
+				String user = request.queryParams("user");
+				String password = request.queryParams("password");
 
-                String dbPassword = usernamePasswords.get(user);
-                if (!(password != null && password.equals(dbPassword))) {
-                    halt(401, "You are not welcome here!!!");
-                }
-            }
-        });
+				String dbPassword = usernamePasswords.get(user);
+				if (!(password != null && password.equals(dbPassword))) {
+					halt(401, "You are not welcome here!!!");
+				}
+			}
+		});
 
-        before("/hello", (request, response) -> {
-            response.header("Foo", "Set by second before filter");
-        });
+		before("/hello", new Filter() {
+			@Override
+			public void handle(Request request, Response response) throws Exception {
+				response.header("Foo", "Set by second before filter");
+			}
+		});
 
-        get("/hello", (request, response) -> {
-            return "Hello World!";
-        });
+		get("/hello", new Route() {
+			@Override
+			public Object handle(Request request, Response response) {
+				return "Hello World!";
+			}
+		});
 
-        after("/hello", (request, response) -> {
-            response.header("spark", "added by after-filter");
-        });
+		after("/hello", new Filter() {
+			@Override
+			public void handle(Request request, Response response) throws Exception {
+				response.header("spark", "added by after-filter");
+			}
+		});
 
-    }
+	}
 }

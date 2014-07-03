@@ -25,173 +25,179 @@ import spark.utils.IOUtils;
 
 public class BooksIntegrationTest {
 
-    private static int PORT = 4567;
+	private static int PORT = 4567;
 
-    private static String AUTHOR = "FOO";
-    private static String TITLE = "BAR";
-    private static String NEW_TITLE = "SPARK";
+	private static String AUTHOR = "FOO";
+	private static String TITLE = "BAR";
+	private static String NEW_TITLE = "SPARK";
 
-    private String bookId;
+	private String bookId;
 
-    @AfterClass
-    public static void tearDown() {
-        Spark.stop();
-    }
+	@AfterClass
+	public static void tearDown() {
+		Spark.stop();
+	}
 
-    @After
-    public void clearBooks() {
-        Books.books.clear();
-    }
+	@After
+	public void clearBooks() {
+		Books.books.clear();
+	}
 
-    @BeforeClass
-    public static void setup() {
-        before((request, response) -> {
-            response.header("FOZ", "BAZ");
-        });
+	@BeforeClass
+	public static void setup() {
+		before(new Filter() {
+			@Override
+			public void handle(Request request, Response response) throws Exception {
+				response.header("FOZ", "BAZ");
+			}
+		});
 
-        Books.main(null);
+		Books.main(null);
 
-        after((request, response) -> {
-            response.header("FOO", "BAR");
-        });
+		after(new Filter() {
+			@Override
+			public void handle(Request request, Response response) throws Exception {
+				response.header("FOO", "BAR");
+			}
+		});
 
-        try {
-            Thread.sleep(500);
-        } catch (Exception e) {
-        }
-    }
+		try {
+			Thread.sleep(500);
+		} catch (Exception e) {
+		}
+	}
 
-    @Test
-    public void canCreateBook() {
-        UrlResponse response = createBookViaPOST();
+	@Test
+	public void canCreateBook() {
+		UrlResponse response = createBookViaPOST();
 
-        assertNotNull(response);
-        assertNotNull(response.body);
-        assertTrue(Integer.valueOf(response.body) > 0);
-        assertEquals(201, response.status);
-    }
+		assertNotNull(response);
+		assertNotNull(response.body);
+		assertTrue(Integer.valueOf(response.body) > 0);
+		assertEquals(201, response.status);
+	}
 
-    @Test
-    public void canListBooks() {
-        bookId = createBookViaPOST().body.trim();
+	@Test
+	public void canListBooks() {
+		bookId = createBookViaPOST().body.trim();
 
-        UrlResponse response = doMethod("GET", "/books", null);
+		UrlResponse response = doMethod("GET", "/books", null);
 
-        assertNotNull(response);
-        String body = response.body.trim();
-        assertNotNull(body);
-        assertTrue(Integer.valueOf(body) > 0);
-        assertEquals(200, response.status);
-        assertTrue(response.body.contains(bookId));
-    }
+		assertNotNull(response);
+		String body = response.body.trim();
+		assertNotNull(body);
+		assertTrue(Integer.valueOf(body) > 0);
+		assertEquals(200, response.status);
+		assertTrue(response.body.contains(bookId));
+	}
 
-    @Test
-    public void canGetBook() {
-        bookId = createBookViaPOST().body.trim();
+	@Test
+	public void canGetBook() {
+		bookId = createBookViaPOST().body.trim();
 
-        UrlResponse response = doMethod("GET", "/books/" + bookId, null);
+		UrlResponse response = doMethod("GET", "/books/" + bookId, null);
 
-        String result = response.body;
-        assertNotNull(response);
-        assertNotNull(response.body);
-        assertEquals(200, response.status);
-        assertTrue(result.contains(AUTHOR));
-        assertTrue(result.contains(TITLE));
-        assertTrue(beforeFilterIsSet(response));
-        assertTrue(afterFilterIsSet(response));
-    }
+		String result = response.body;
+		assertNotNull(response);
+		assertNotNull(response.body);
+		assertEquals(200, response.status);
+		assertTrue(result.contains(AUTHOR));
+		assertTrue(result.contains(TITLE));
+		assertTrue(beforeFilterIsSet(response));
+		assertTrue(afterFilterIsSet(response));
+	}
 
-    @Test
-    public void canUpdateBook() {
-        bookId = createBookViaPOST().body.trim();
+	@Test
+	public void canUpdateBook() {
+		bookId = createBookViaPOST().body.trim();
 
-        UrlResponse response = updateBook();
+		UrlResponse response = updateBook();
 
-        String result = response.body;
-        assertNotNull(response);
-        assertNotNull(response.body);
-        assertEquals(200, response.status);
-        assertTrue(result.contains(bookId));
-        assertTrue(result.contains("updated"));
-    }
+		String result = response.body;
+		assertNotNull(response);
+		assertNotNull(response.body);
+		assertEquals(200, response.status);
+		assertTrue(result.contains(bookId));
+		assertTrue(result.contains("updated"));
+	}
 
-    @Test
-    public void canGetUpdatedBook() {
-        bookId = createBookViaPOST().body.trim();
-        updateBook();
+	@Test
+	public void canGetUpdatedBook() {
+		bookId = createBookViaPOST().body.trim();
+		updateBook();
 
-        UrlResponse response = doMethod("GET", "/books/" + bookId, null);
+		UrlResponse response = doMethod("GET", "/books/" + bookId, null);
 
-        String result = response.body;
-        assertNotNull(response);
-        assertNotNull(response.body);
-        assertEquals(200, response.status);
-        assertTrue(result.contains(AUTHOR));
-        assertTrue(result.contains(NEW_TITLE));
-    }
+		String result = response.body;
+		assertNotNull(response);
+		assertNotNull(response.body);
+		assertEquals(200, response.status);
+		assertTrue(result.contains(AUTHOR));
+		assertTrue(result.contains(NEW_TITLE));
+	}
 
-    @Test
-    public void canDeleteBook() {
-        bookId = createBookViaPOST().body.trim();
+	@Test
+	public void canDeleteBook() {
+		bookId = createBookViaPOST().body.trim();
 
-        UrlResponse response = doMethod("DELETE", "/books/" + bookId, null);
+		UrlResponse response = doMethod("DELETE", "/books/" + bookId, null);
 
-        String result = response.body;
-        assertNotNull(response);
-        assertNotNull(response.body);
-        assertEquals(200, response.status);
-        assertTrue(result.contains(bookId));
-        assertTrue(result.contains("deleted"));
-    }
+		String result = response.body;
+		assertNotNull(response);
+		assertNotNull(response.body);
+		assertEquals(200, response.status);
+		assertTrue(result.contains(bookId));
+		assertTrue(result.contains("deleted"));
+	}
 
-    @Test(expected = FileNotFoundException.class)
-    public void wontFindBook() throws IOException {
-        getResponse("GET", "/books/" + bookId, null);
-    }
+	@Test(expected = FileNotFoundException.class)
+	public void wontFindBook() throws IOException {
+		getResponse("GET", "/books/" + bookId, null);
+	}
 
-    private static UrlResponse doMethod(String requestMethod, String path, String body) {
-        UrlResponse response = new UrlResponse();
+	private static UrlResponse doMethod(String requestMethod, String path, String body) {
+		UrlResponse response = new UrlResponse();
 
-        try {
-            getResponse(requestMethod, path, response);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+		try {
+			getResponse(requestMethod, path, response);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 
-        return response;
-    }
+		return response;
+	}
 
-    private static void getResponse(String requestMethod, String path, UrlResponse response)
-            throws MalformedURLException, IOException, ProtocolException {
-        URL url = new URL("http://localhost:" + PORT + path);
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        connection.setRequestMethod(requestMethod);
-        connection.connect();
-        String res = IOUtils.toString(connection.getInputStream());
-        response.body = res;
-        response.status = connection.getResponseCode();
-        response.headers = connection.getHeaderFields();
-    }
+	private static void getResponse(String requestMethod, String path, UrlResponse response)
+			throws MalformedURLException, IOException, ProtocolException {
+		URL url = new URL("http://localhost:" + PORT + path);
+		HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+		connection.setRequestMethod(requestMethod);
+		connection.connect();
+		String res = IOUtils.toString(connection.getInputStream());
+		response.body = res;
+		response.status = connection.getResponseCode();
+		response.headers = connection.getHeaderFields();
+	}
 
-    private static class UrlResponse {
-        public Map<String, List<String>> headers;
-        private String body;
-        private int status;
-    }
+	private static class UrlResponse {
+		public Map<String, List<String>> headers;
+		private String body;
+		private int status;
+	}
 
-    private UrlResponse createBookViaPOST() {
-        return doMethod("POST", "/books?author=" + AUTHOR + "&title=" + TITLE, null);
-    }
+	private UrlResponse createBookViaPOST() {
+		return doMethod("POST", "/books?author=" + AUTHOR + "&title=" + TITLE, null);
+	}
 
-    private UrlResponse updateBook() {
-        return doMethod("PUT", "/books/" + bookId + "?title=" + NEW_TITLE, null);
-    }
+	private UrlResponse updateBook() {
+		return doMethod("PUT", "/books/" + bookId + "?title=" + NEW_TITLE, null);
+	}
 
-    private boolean afterFilterIsSet(UrlResponse response) {
-        return response.headers.get("FOO").get(0).equals("BAR");
-    }
+	private boolean afterFilterIsSet(UrlResponse response) {
+		return response.headers.get("FOO").get(0).equals("BAR");
+	}
 
-    private boolean beforeFilterIsSet(UrlResponse response) {
-        return response.headers.get("FOZ").get(0).equals("BAZ");
-    }
+	private boolean beforeFilterIsSet(UrlResponse response) {
+		return response.headers.get("FOZ").get(0).equals("BAZ");
+	}
 }

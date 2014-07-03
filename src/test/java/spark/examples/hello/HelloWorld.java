@@ -17,15 +17,21 @@
 package spark.examples.hello;
 
 import static spark.Spark.get;
+import spark.Request;
+import spark.Response;
+import spark.Route;
 
 public class HelloWorld {
 
-    public static void main(String[] args) {
+	public static void main(String[] args) {
 
-        get("/hello", (request, response) -> {
-            return "Hello World!";
-        });
+		get("/hello", new Route() {
+			@Override
+			public Object handle(Request request, Response response) {
+				return "Hello World!";
+			}
+		});
 
-    }
+	}
 
 }
