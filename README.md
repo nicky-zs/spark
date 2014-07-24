@@ -3,7 +3,7 @@ Spark - a Sinatra inspired web framework
 
 NOTE: This spark project is forked from Per Wendel's.
 
-NOTE: In this spark, all lambda expressions are removed so that JVM7 is supported.
+**NOTE: In this spark, all lambda expressions are REMOVED so that JVM7 is supported!!! Use interface!!!**
 
 NEWS: Spark 2.0.0 with Lambda support is now available on Maven central!!! :
 
